@@ -8,7 +8,7 @@
 	xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client" >
 
 	<gxt:ContentPanel headingText="Inicio" >
-	  <g:HTMLPanel>Inicio</g:HTMLPanel>
+	  <g:HTMLPanel>No Data</g:HTMLPanel>
 	</gxt:ContentPanel>
 	
 </ui:UiBinder>

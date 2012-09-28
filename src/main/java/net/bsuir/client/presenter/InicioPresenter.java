@@ -15,7 +15,7 @@ public class InicioPresenter extends
 
 	public interface MyView extends View {}
 	@ProxyCodeSplit
-	@NameToken(NameTokens.main)
+	@NameToken(NameTokens.MAIN)
 	public interface MyProxy extends ProxyPlace<InicioPresenter> {}
 
 	@Inject
