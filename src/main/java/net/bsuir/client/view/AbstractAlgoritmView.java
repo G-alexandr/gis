@@ -2,25 +2,33 @@ package net.bsuir.client.view;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
+import com.google.web.bindery.event.shared.EventBus;
 import com.gwtplatform.mvp.client.ViewImpl;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.menu.ColorMenu;
-import net.bsuir.client.presenter.DDAAlgoritmPresenter;
+import net.bsuir.client.events.ColorChanged;
+import net.bsuir.client.tools.Canvas;
 import org.vaadin.gwtgraphics.client.DrawingArea;
-import org.vaadin.gwtgraphics.client.shape.Rectangle;
 
-public abstract class AbstractAlgoritmView extends ViewImpl implements DDAAlgoritmPresenter.MyView {
+public abstract class AbstractAlgoritmView extends ViewImpl {
 
 
     public interface Binder extends UiBinder<Widget, AbstractAlgoritmView> {    }
 
     protected final Widget widget;
+
+    protected String color ="#000000";
+
+    @Inject
+    EventBus eventBus;
 
     @UiField
     protected ContentPanel panel;
@@ -28,8 +36,7 @@ public abstract class AbstractAlgoritmView extends ViewImpl implements DDAAlgori
     @UiField
     protected ContentPanel settingsPanel;
 
-    @UiField
-    protected DrawingArea canvas;
+    protected Canvas canvas;
 
     @UiField
     protected ColorMenu colorPanel;
@@ -49,6 +56,9 @@ public abstract class AbstractAlgoritmView extends ViewImpl implements DDAAlgori
     @Inject
     public AbstractAlgoritmView(Binder binder) {
         widget=binder.createAndBindUi(this);
+        canvas=new Canvas(1000,900);
+        panel.add(canvas);
+        configure();
     }
 
 
@@ -62,5 +72,25 @@ public abstract class AbstractAlgoritmView extends ViewImpl implements DDAAlgori
 
     public Button getClearButton() {
         return clearButton;
+    }
+
+    public String getColor() {
+        return color;
+    }
+    void configure(){
+        getColorPanel().getPalette().addSelectionHandler(new SelectionHandler<String>() {
+            @Override
+            public void onSelection(SelectionEvent<String> event) {
+                color = "#" + event.getSelectedItem();
+                eventBus.fireEvent(new ColorChanged());
+            }
+        });
+
+        getClearButton().addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                canvas.clear();
+            }
+        });
     }
 }

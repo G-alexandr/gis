@@ -54,7 +54,7 @@ public class AccordinMenuView extends ViewImpl implements AccordinMenuPresenter.
         MenuModel m = newItem("Lab 1", null);
         store.add(m);
 
-        store.add(m, newItem("DDL Algorritm", NameTokens.getDdl()));
+        store.add(m, newItem("DDA Algorritm", NameTokens.getDdl()));
         store.add(m, newItem("Brezenchem", NameTokens.getBrezenhem()));
 //
 //        m = newItem("Lab 2", null);

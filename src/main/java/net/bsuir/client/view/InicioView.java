@@ -5,20 +5,19 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
 import com.gwtplatform.mvp.client.ViewImpl;
 import net.bsuir.client.presenter.InicioPresenter;
+import net.bsuir.client.tools.Canvas;
 
-public class InicioView extends ViewImpl implements InicioPresenter.MyView {
+import static net.bsuir.client.presenter.InicioPresenter.*;
 
-	private final Widget widget;
+public class InicioView extends AbstractAlgoritmView implements InicioPresenter.MyView {
 
-	public interface Binder extends UiBinder<Widget, InicioView> {
-	}
+    @Inject
+    public InicioView(Binder binder) {
+        super(binder);
+    }
 
-	@Inject
-	public InicioView(final Binder binder) {
-		widget = binder.createAndBindUi(this);
-	}
+    public Canvas getCanvas(){
+        return super.canvas;
+    }
 
-	public Widget asWidget() {
-		return widget;
-	}
 }

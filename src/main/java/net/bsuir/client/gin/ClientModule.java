@@ -6,7 +6,6 @@ import net.bsuir.client.place.ClientPlaceManager;
 import net.bsuir.client.place.DefaultPlace;
 import net.bsuir.client.place.NameTokens;
 import net.bsuir.client.presenter.AccordinMenuPresenter;
-import net.bsuir.client.presenter.DDAAlgoritmPresenter;
 import net.bsuir.client.presenter.InicioPresenter;
 import net.bsuir.client.presenter.LayoutPresenter;
 import net.bsuir.client.view.*;
@@ -29,8 +28,8 @@ public class ClientModule extends AbstractPresenterModule {
         bindPresenter(AccordinMenuPresenter.class, AccordinMenuPresenter.MyView.class,
                 AccordinMenuView.class, AccordinMenuPresenter.MyProxy.class);
 
-        bindPresenter(DDAAlgoritmPresenter.class, DDAAlgoritmPresenter.MyView.class,
-                DDAAlgoritmView.class, DDAAlgoritmPresenter.MyProxy.class);
+//        bindPresenter(DDAAlgoritmView.class, DDAAlgoritmView.MyView.class,
+//                DDAAlgoritmView.class, DDAAlgoritmView.MyProxy.class);
 
 	}
 }
