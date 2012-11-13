@@ -9,6 +9,7 @@ import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
@@ -36,6 +37,9 @@ public abstract class AbstractAlgoritmView extends ViewImpl {
 
     @UiField
     protected ContentPanel settingsPanel;
+
+    @UiField
+    protected TextArea logger;
 
     protected Canvas canvas;
 
@@ -81,6 +85,9 @@ public abstract class AbstractAlgoritmView extends ViewImpl {
         return color;
     }
 
+    public TextArea getLoger() {
+        return logger;
+    }
 
     void configure(){
         getColorPanel().getPalette().addSelectionHandler(new SelectionHandler<String>() {

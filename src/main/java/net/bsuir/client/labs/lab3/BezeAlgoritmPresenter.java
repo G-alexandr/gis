@@ -9,7 +9,6 @@ import com.gwtplatform.mvp.client.annotations.NameToken;
 import com.gwtplatform.mvp.client.annotations.ProxyCodeSplit;
 import com.gwtplatform.mvp.client.proxy.ProxyPlace;
 import com.gwtplatform.mvp.client.proxy.RevealContentEvent;
-import com.sencha.gxt.widget.core.client.info.Info;
 import net.bsuir.client.events.ColorChanged;
 import net.bsuir.client.events.MouseClick;
 import net.bsuir.client.events.MouseMove;
@@ -21,8 +20,8 @@ import org.vaadin.gwtgraphics.client.shape.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ErmitAlgoritmPresenter  extends
-		Presenter<ErmitAlgoritmPresenter.MyView, ErmitAlgoritmPresenter.MyProxy>{
+public class BezeAlgoritmPresenter extends
+		Presenter<BezeAlgoritmPresenter.MyView, BezeAlgoritmPresenter.MyProxy>{
 
     private String currentColor = "#000000";
 
@@ -33,7 +32,7 @@ public class ErmitAlgoritmPresenter  extends
     List<Point> old_points;
 
     private final  static int N=10;
-    private final  static int treshold = 2;
+    private final  static int treshold = 1;
 
     public interface MyView extends View {
         Canvas getCanvas();
@@ -51,15 +50,15 @@ public class ErmitAlgoritmPresenter  extends
 
 
     @ProxyCodeSplit
-	@NameToken(NameTokens.ERMIT)
-	public interface MyProxy extends ProxyPlace<ErmitAlgoritmPresenter> {}
+	@NameToken(NameTokens.BEZE)
+	public interface MyProxy extends ProxyPlace<BezeAlgoritmPresenter> {}
 
 	@Inject
-	public ErmitAlgoritmPresenter(final EventBus eventBus, final MyView view,
-                                       final MyProxy proxy) {
+	public BezeAlgoritmPresenter(final EventBus eventBus, final MyView view,
+                                 final MyProxy proxy) {
 		super(eventBus, view, proxy);
-        offset_x =  getView().getCanvas().getMax_x()/2;
-        offset_y =  getView().getCanvas().getMax_y()/2;
+        offset_x = 0;//getView().getCanvas().getMax_x()/2;
+        offset_y = 0;//getView().getCanvas().getMax_y()/2;
 	}
 
 	@Override
@@ -85,21 +84,21 @@ public class ErmitAlgoritmPresenter  extends
                if(point_1 == null ){
                    point_1=new Point(event.getPosX(),event.getPosY());
                    getView().getCanvas().getPixelByPos(event.getPosX(),event.getPosY()).setFillColor("red");
-                   log("first point: "+event.getPosX()+" | "+event.getPosY());
+                   log("point 1: "+event.getPosX()+" | "+event.getPosY());
                }
                else if (point_2 == null){
                    point_2=new Point(event.getPosX(),event.getPosY());
                    getView().getCanvas().getPixelByPos(event.getPosX(),event.getPosY()).setFillColor("red");
-                   log("second point: "+event.getPosX()+" | "+event.getPosY());
+                   log("point 2: "+event.getPosX()+" | "+event.getPosY());
                }
                else if (r1 == null){
 
                    r1 = new Point((event.getPosX()-offset_x)*treshold,(event.getPosY()-offset_y)*treshold);
-                   log("vector R1: "+(event.getPosX()-offset_x)*treshold+" | "+(event.getPosY()-offset_y)*treshold);
+                   log("point 3: "+(event.getPosX()-offset_x)*treshold+" | "+(event.getPosY()-offset_y)*treshold);
                }
                else if (r2 == null){
-                   r2 = new Point((event.getPosX()-offset_x)*treshold,(event.getPosY()-offset_x)*treshold);
-                   log("vector R2 "+r2.X+" | "+r2.Y);
+                   r2 = new Point((event.getPosX()-20)*treshold,(event.getPosY()-20)*treshold);
+                   log("point 4: "+event.getPosX()*treshold+" | "+event.getPosY()*treshold);
                }
 
                 clicks++;
@@ -116,7 +115,7 @@ public class ErmitAlgoritmPresenter  extends
                 if(clicks < 2 || clicks>=4) return;
                 else  {
                     removeOld();
-                    old_points=algoritm(point_1,point_2,
+                    old_points=algoritm(point_1, point_2,
                                         r1==null ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : r1,
                                         r2==null ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : r2);
                 }
@@ -137,8 +136,8 @@ public class ErmitAlgoritmPresenter  extends
         int x, y;
 
         for (double i = 0.0; i < 1; i=i+0.005){
-           x = (int)((p1.X*((2*i*i*i)-(3*i*i)+1))+(p2.X*((3*i*i)-(2*i*i*i)))+(r1.X*((i*i*i)-(2*i*i)+i))+(r2.X*((i*i*i)-(i*i))));
-           y = (int)((p1.Y*((2*i*i*i)-(3*i*i)+1))+(p2.Y*((3*i*i)-(2*i*i*i)))+(r1.Y*((i*i*i)-(2*i*i)+i))+(r2.Y*((i*i*i)-(i*i))));
+           x = (int) Math.round(p1.X*Math.pow(1-i,3)+p2.X*3*i*Math.pow(i-1,2)+3*i*i*(1-i)*r1.X+r2.X*i*i*i);
+           y = (int) Math.round(p1.Y*Math.pow(1-i,3)+p2.Y*3*i*Math.pow(i-1,2)+3*i*i*(1-i)*r1.Y+r2.Y*i*i*i);
             drawPoint(x,y);
             result.add(new Point(x,y));
         }

@@ -4,6 +4,8 @@ import com.google.gwt.event.dom.client.*;
 import com.google.gwt.event.logical.shared.AttachEvent;
 import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.widget.core.client.tips.ToolTip;
+import com.sencha.gxt.widget.core.client.tips.ToolTipConfig;
 import net.bsuir.client.events.MouseClick;
 import net.bsuir.client.events.MouseMove;
 import org.vaadin.gwtgraphics.client.DrawingArea;
@@ -62,6 +64,7 @@ public class Canvas extends DrawingArea {
 
             }
         }
+
     }
 
 
@@ -129,5 +132,13 @@ public class Canvas extends DrawingArea {
             pixel.setFillColor(currentColor);
         else return;
 
+    }
+
+    public int getMax_x() {
+        return max_x;
+    }
+
+    public int getMax_y() {
+        return max_y;
     }
 }

@@ -69,7 +69,6 @@ public class AccordinMenuView extends ViewImpl implements AccordinMenuPresenter.
         store.add(m);
         store.add(m, newItem("Ermit", NameTokens.ERMIT));
         store.add(m, newItem("Beze", NameTokens.BEZE));
-        store.add(m, newItem("B-Spline", NameTokens.B_SPLINE));
         return store;
     }
 

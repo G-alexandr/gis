@@ -8,6 +8,7 @@ import com.gwtplatform.mvp.client.proxy.PlaceManager;
 import net.bsuir.client.labs.lab1.BrezenchemAlgoritmPresenter;
 import net.bsuir.client.labs.lab2.CircleAlgoritmPresenter;
 import net.bsuir.client.labs.lab2.ParabolaAlgoritmPresenter;
+import net.bsuir.client.labs.lab3.BezeAlgoritmPresenter;
 import net.bsuir.client.labs.lab3.ErmitAlgoritmPresenter;
 import net.bsuir.client.presenter.AccordinMenuPresenter;
 import net.bsuir.client.presenter.InicioPresenter;
@@ -36,4 +37,6 @@ public interface ClientGinjector extends Ginjector {
     AsyncProvider<ParabolaAlgoritmPresenter> getParabolaAlgoritmPresenter();
 
     AsyncProvider<ErmitAlgoritmPresenter> getErmitAlgoritmPresenter();
+
+    AsyncProvider<BezeAlgoritmPresenter> getBezeAlgoritmPresenter();
 }

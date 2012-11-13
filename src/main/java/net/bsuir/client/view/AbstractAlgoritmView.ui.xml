@@ -63,6 +63,9 @@
                             <container:child >
                                 <g:Button ui:field="clearButton" text="Clear" styleName="{style.button}"  width="100%"/>
                             </container:child>
+                            <container:child >
+                                <g:TextArea ui:field="logger" width="100%" height="100%" readOnly="true" visibleLines="50"/>
+                            </container:child>
                         </container:VerticalLayoutContainer>
                     </gxt:ContentPanel>
 

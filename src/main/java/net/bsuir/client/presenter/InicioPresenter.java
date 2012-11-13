@@ -103,8 +103,5 @@ public class InicioPresenter extends
     protected void onReveal() {
         super.onReveal();
         getView().getCanvas().clear();
-
     }
-
-
 }
