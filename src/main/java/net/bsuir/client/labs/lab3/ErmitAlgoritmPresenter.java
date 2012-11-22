@@ -16,6 +16,7 @@ import net.bsuir.client.events.MouseMove;
 import net.bsuir.client.place.NameTokens;
 import net.bsuir.client.presenter.LayoutPresenter;
 import net.bsuir.client.tools.Canvas;
+import net.bsuir.client.utils.CanvasLayersMagic;
 import org.vaadin.gwtgraphics.client.shape.Rectangle;
 
 import java.util.ArrayList;
@@ -24,22 +25,30 @@ import java.util.List;
 public class ErmitAlgoritmPresenter  extends
 		Presenter<ErmitAlgoritmPresenter.MyView, ErmitAlgoritmPresenter.MyProxy>{
 
-    private String currentColor = "#000000";
-
-    boolean drawFlag = false;
-
-    private int clicks =0;
-
-    List<Point> old_points;
-
-    private final  static int N=10;
-    private final  static int treshold = 2;
-
+    @ProxyCodeSplit
+    @NameToken(NameTokens.ERMIT)
+    public interface MyProxy extends ProxyPlace<ErmitAlgoritmPresenter> {}
     public interface MyView extends View {
         Canvas getCanvas();
         String getColor();
         TextArea getLoger();
     }
+
+    @Inject
+    public ErmitAlgoritmPresenter(final EventBus eventBus, final MyView view,
+                                  final MyProxy proxy) {
+        super(eventBus, view, proxy);
+        offset_x =  getView().getCanvas().getMax_x()/2;
+        offset_y =  getView().getCanvas().getMax_y()/2;
+    }
+
+
+    private String currentColor = "#000000";
+    boolean drawFlag = false;
+    private int clicks =0;
+
+    private final  static int N=10;
+    private final  static int treshold = 1;
 
     private int offset_x , offset_y;
 
@@ -49,18 +58,28 @@ public class ErmitAlgoritmPresenter  extends
     private Point r1;
     private Point r2;
 
+    private CanvasLayersMagic magic = new CanvasLayersMagic() {
 
-    @ProxyCodeSplit
-	@NameToken(NameTokens.ERMIT)
-	public interface MyProxy extends ProxyPlace<ErmitAlgoritmPresenter> {}
+        @Override
+        public void rollback() {
+            for (Integer key: getTransactionMap().keySet()){
+                if(getDrawPoints().containsKey(key)){
+                    String old_color = getDrawPoints().get(key);
+                    ((Rectangle)getView().getCanvas()
+                            .getVectorObject(key))
+                            .setFillColor(old_color);
+                }
+                else {
+                    ((Rectangle)getView().getCanvas()
+                            .getVectorObject(key))
+                            .setFillColor("#FFFFFF");
+                }
+            }
+            getTransactionMap().clear();
+        }
+    };
 
-	@Inject
-	public ErmitAlgoritmPresenter(final EventBus eventBus, final MyView view,
-                                       final MyProxy proxy) {
-		super(eventBus, view, proxy);
-        offset_x =  getView().getCanvas().getMax_x()/2;
-        offset_y =  getView().getCanvas().getMax_y()/2;
-	}
+
 
 	@Override
 	protected void revealInParent() {
@@ -79,7 +98,8 @@ public class ErmitAlgoritmPresenter  extends
                 if(getView().getCanvas().getAlgoritm() != event.getAlgoritm()) return;
 //                event.getRectangle().setFillColor(currentColor);
                if (clicks >= 4){
-                   clicks=0;point_1=null;point_2=null; r1=null; r2=null; old_points=null;
+                   magic.commit();
+                   clicks=0;point_1=null;point_2=null; r1=null; r2=null;
                    log("=================");
                }
                if(point_1 == null ){
@@ -115,8 +135,8 @@ public class ErmitAlgoritmPresenter  extends
 
                 if(clicks < 2 || clicks>=4) return;
                 else  {
-                    removeOld();
-                    old_points=algoritm(point_1,point_2,
+                    magic.rollback();
+                    algoritm(point_1,point_2,
                                         r1==null ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : r1,
                                         r2==null ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : r2);
                 }
@@ -147,17 +167,12 @@ public class ErmitAlgoritmPresenter  extends
 
     void drawPoint(int x, int y){
         Rectangle pixel = getView().getCanvas().getPixelByPos(x, y);
-        if(pixel!=null)
+        if(pixel!=null) {
             pixel.setFillColor(currentColor);
+            magic.add(getView().getCanvas().getNumber(x,y),currentColor);
+        }
         else return;
     }
-     void removeOld(){
-         if(old_points!= null){
-             Canvas canvas = getView().getCanvas();
-             for (Point p: old_points)
-                 canvas.getPixelByPos(p.X,p.Y).setFillColor("white");
-         }
-     }
 
     void log(String message){
          getView().getLoger().setText( getView().getLoger().getText()+"\n"+message);

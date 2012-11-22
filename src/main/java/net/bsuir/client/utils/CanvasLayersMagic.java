@@ -13,17 +13,11 @@ public abstract class CanvasLayersMagic {
     private HashMap<Integer, String> transactionMap = new HashMap<Integer, String>(100);
 
 
-//    public void addToDrawPoints(int x, int y, String color){
-//        Integer key = String.valueOf(x)+String.valueOf(y);
-//        if(drawPoints.containsKey(key)){
-//            transactionMap.put(key,drawPoints.get(key));
-//            drawPoints.remove(key);
-//        }
-//        drawPoints.put(key,color);
-//    }
-
     public void add(Integer pixelNumber, String color){
         transactionMap.put(pixelNumber,color);
+    }
+    public void addToDraw(Integer pixelNumber, String color){
+        drawPoints.put(pixelNumber,color);
     }
     public void clearDrawPoints(){
         drawPoints.clear();
@@ -35,6 +29,7 @@ public abstract class CanvasLayersMagic {
             drawPoints.remove(o);
             drawPoints.put(o,color);
         }
+        getTransactionMap().clear();
     }
     public abstract void rollback();
 
@@ -46,5 +41,4 @@ public abstract class CanvasLayersMagic {
         return transactionMap;
     }
 
-    //
 }

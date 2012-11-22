@@ -1,5 +1,8 @@
 package net.bsuir.client.labs.lab1;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.Button;
 import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
 import com.gwtplatform.mvp.client.Presenter;
@@ -23,14 +26,27 @@ import java.util.ArrayList;
 public class BrezenchemAlgoritmPresenter extends
 		Presenter<BrezenchemAlgoritmPresenter.MyView, BrezenchemAlgoritmPresenter.MyProxy> {
 
+    public interface MyView extends View {
+        Canvas getCanvas();
+        String getColor();
+        Button getClearButton();
+    }
+
+    @ProxyCodeSplit
+    @NameToken(NameTokens.BREZENHEM)
+    public interface MyProxy extends ProxyPlace<BrezenchemAlgoritmPresenter> {}
+    //----------------------------------------------
+    @Inject
+    public BrezenchemAlgoritmPresenter(final EventBus eventBus, final MyView view,
+                                       final MyProxy proxy) {
+        super(eventBus, view, proxy);
+    }
+    //----------------------------------------------
     private String currentColor = "#000000";
+    boolean mousePressed = false;
+    private int x1, y1;
 
     private CanvasLayersMagic magic = new CanvasLayersMagic() {
-        @Override
-        public void commit() {
-            super.commit();
-            getTransactionMap().clear();
-        }
 
         @Override
         public void rollback() {
@@ -50,36 +66,17 @@ public class BrezenchemAlgoritmPresenter extends
             getTransactionMap().clear();
         }
     };
-
-    boolean mousePressed = false;
-    public interface MyView extends View {
-        Canvas getCanvas();
-        String getColor();
-    }
-
-    private int x1, y1;
-//   private ArrayList<Integer> old_x, old_y;
-
-    @ProxyCodeSplit
-	@NameToken(NameTokens.BREZENHEM)
-	public interface MyProxy extends ProxyPlace<BrezenchemAlgoritmPresenter> {}
-
-	@Inject
-	public BrezenchemAlgoritmPresenter(final EventBus eventBus, final MyView view,
-                                       final MyProxy proxy) {
-		super(eventBus, view, proxy);
-	}
-
+    //----------------------------------------------
 	@Override
 	protected void revealInParent() {
 		RevealContentEvent.fire(this, LayoutPresenter.SLOT_content, this);
 	}
 
-    @Override
-    protected void onReveal() {
-        super.onReveal();
-        getView().getCanvas().clear();
-            }
+//    @Override
+//    protected void onReveal() {
+//        super.onReveal();
+//        getView().getCanvas().clear();
+//     }
 
     @Override
 	protected void onBind() {
@@ -96,11 +93,10 @@ public class BrezenchemAlgoritmPresenter extends
                     magic.commit();
                 }
                 else mousePressed = true;
+
                 x1=event.getPosX();
                 y1=event.getPosY();
-//                old_x=null;
-//                old_y=null;
-
+                magic.add(getView().getCanvas().getNumber(x1,y1),"#FF0011");
             }
         }));
 
@@ -109,12 +105,6 @@ public class BrezenchemAlgoritmPresenter extends
             public void onMove(MouseMove event) {
                 if(getView().getCanvas().getAlgoritm() != event.getAlgoritm()) return;
                 if(mousePressed){
-                    event.getRectangle().setFillColor(currentColor);
-//                    if(old_x!=null || old_y!=null){
-//                        for (int i=0;i<old_x.size();i++){
-//                            getView().getCanvas().getPixelByPos(Math.round(old_x.get(i)), Math.round(old_y.get(i))).setFillColor("#FFFFFF");
-//                        }
-//                    }
                     magic.rollback();
                     drawBresenhamLine(x1, y1, event.getPosX(), event.getPosY());
                 }
@@ -127,6 +117,13 @@ public class BrezenchemAlgoritmPresenter extends
                 currentColor = getView().getColor();
             }
         }));
+
+        getView().getClearButton().addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                magic.clearDrawPoints();
+            }
+        });
 	}
 
 
@@ -212,8 +209,6 @@ public class BrezenchemAlgoritmPresenter extends
         Rectangle pixel = getView().getCanvas().getPixelByPos(x, y);
         if(pixel!=null) {
             pixel.setFillColor(currentColor);
-//            old_y.add(y);
-//            old_x.add(x);
             magic.add(getView().getCanvas().getNumber(x,y),currentColor);
         }
         else return;

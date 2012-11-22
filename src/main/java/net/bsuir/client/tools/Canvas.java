@@ -61,13 +61,9 @@ public class Canvas extends DrawingArea {
                         mouseMove(event,rect);
                     }
                 });
-
             }
         }
-
     }
-
-
     public void setEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
     }
@@ -103,27 +99,18 @@ public class Canvas extends DrawingArea {
 
     final public Rectangle getPixelByPos(int x, int y) {
 
-        if(x>=max_x ) x=max_x-1;
-        if(y>=max_y) y=max_y-1;
-        if(x<=0) x=0;
-        if(y<=0) y=0;
-        int pixelNumber = 0;
-        if(x>=1) {
-            pixelNumber = x*max_y + y;
-        }
-        else{
-            pixelNumber=y;
-        }
-        if(getVectorObjectCount()<pixelNumber) return null;
-        return (Rectangle)getVectorObject(pixelNumber);
+        Integer i = getNumber(x,y);
+
+        if(i==null) return null;
+        return (Rectangle)getVectorObject(i);
     }
 
     public Integer getNumber(int x, int y){
 
-        if(x>=max_x ) x=max_x-1;
-        if(y>=max_y) y=max_y-1;
-        if(x<=0) x=0;
-        if(y<=0) y=0;
+        if(x>=max_x ) return null;
+        if(y>=max_y) return null;
+        if(x<0) return null;
+        if(y<0) return null;
         int pixelNumber = 0;
         if(x>=1) {
             pixelNumber = x*max_y + y;

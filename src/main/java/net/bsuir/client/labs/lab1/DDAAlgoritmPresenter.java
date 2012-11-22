@@ -1,5 +1,8 @@
 package net.bsuir.client.labs.lab1;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.Button;
 import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
 import com.gwtplatform.mvp.client.Presenter;
@@ -14,31 +17,52 @@ import net.bsuir.client.events.MouseMove;
 import net.bsuir.client.place.NameTokens;
 import net.bsuir.client.presenter.LayoutPresenter;
 import net.bsuir.client.tools.Canvas;
+import net.bsuir.client.utils.CanvasLayersMagic;
 import org.vaadin.gwtgraphics.client.shape.Rectangle;
 
 public class DDAAlgoritmPresenter extends
 		Presenter<DDAAlgoritmPresenter.MyView, DDAAlgoritmPresenter.MyProxy> {
 
-    private String currentColor  = "#000000";
-
-    boolean mousePressed = false;
     public interface MyView extends View {
         Canvas getCanvas();
         String getColor();
+        Button getClearButton();
     }
-
-    private int x1, y1;
-   private float[] old_x, old_y;
-
     @ProxyCodeSplit
-	@NameToken(NameTokens.DDA)
-	public interface MyProxy extends ProxyPlace<DDAAlgoritmPresenter> {}
-
-	@Inject
-	public DDAAlgoritmPresenter(final EventBus eventBus, final MyView view,
+    @NameToken(NameTokens.DDA)
+    public interface MyProxy extends ProxyPlace<DDAAlgoritmPresenter> {}
+    //----------------------------------------------
+    @Inject
+    public DDAAlgoritmPresenter(final EventBus eventBus, final MyView view,
                                 final MyProxy proxy) {
-		super(eventBus, view, proxy);
-	}
+        super(eventBus, view, proxy);
+    }
+    //----------------------------------------------
+    private String currentColor  = "#000000";
+    private int x1, y1;
+    boolean mousePressed = false;
+    //----------------------------------------------
+    private CanvasLayersMagic magic = new CanvasLayersMagic() {
+
+        @Override
+        public void rollback() {
+            for (Integer key: getTransactionMap().keySet()){
+                if(getDrawPoints().containsKey(key)){
+                    String old_color = getDrawPoints().get(key);
+                    ((Rectangle)getView().getCanvas()
+                            .getVectorObject(key))
+                            .setFillColor(old_color);
+                }
+                else {
+                    ((Rectangle)getView().getCanvas()
+                            .getVectorObject(key))
+                            .setFillColor("#FFFFFF");
+                }
+            }
+            getTransactionMap().clear();
+        }
+    };
+	//=================================================
 
 	@Override
 	protected void revealInParent() {
@@ -55,12 +79,13 @@ public class DDAAlgoritmPresenter extends
             public void onClick(MouseClick event) {
                 if(getView().getCanvas().getAlgoritm() != event.getAlgoritm()) return;
                 event.getRectangle().setFillColor(currentColor);
-                if(mousePressed) mousePressed=false;
+                if(mousePressed) {
+                    mousePressed=false;
+                    magic.commit();
+                }
                 else mousePressed = true;
                 x1=event.getPosX();
                 y1=event.getPosY();
-                old_x=null;
-                old_y=null;
             }
         }));
 
@@ -70,12 +95,7 @@ public class DDAAlgoritmPresenter extends
                 if(getView().getCanvas().getAlgoritm() != event.getAlgoritm()) return;
                 if(mousePressed){
                     event.getRectangle().setFillColor(currentColor);
-                    if(old_x!=null || old_y!=null){
-                        for (int i=0;i<old_x.length;i++){
-                            getView().getCanvas().getPixelByPos(Math.round(old_x[i]), Math.round(old_y[i])).setFillColor("#FFFFFF");
-                        }
-                    }
-//                    getView().getCanvas().clear();
+                    magic.rollback();
                     dda_line(x1, y1, event.getPosX(), event.getPosY());
                 }
             }
@@ -88,13 +108,20 @@ public class DDAAlgoritmPresenter extends
                 currentColor = getView().getColor();
             }
         }));
-	}
 
-    @Override
-    protected void onReveal() {
-        super.onReveal();
-        getView().getCanvas().clear();
-    }
+        getView().getClearButton().addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                magic.clearDrawPoints();
+            }
+        });
+	}
+//
+//    @Override
+//    protected void onReveal() {
+//        super.onReveal();
+//        getView().getCanvas().clear();
+//    }
 
     void dda_line (float x1, float y1, float x2, float y2)
     {
@@ -121,14 +148,21 @@ public class DDAAlgoritmPresenter extends
         }
         x[i] = x2;
         y[i] = y2;
-        old_x=x;
-        old_y=y;
+
         i = 0;
         while (i <= L)
         {
-            Rectangle rect = getView().getCanvas().getPixelByPos(Math.round(x[i]), Math.round(y[i]));
-            rect.setFillColor(currentColor);
+            drawPoint(Math.round(x[i]), Math.round(y[i]));
             i++;
         }
+    }
+
+    void drawPoint(int x, int y){
+        Rectangle pixel = getView().getCanvas().getPixelByPos(x, y);
+        if(pixel!=null) {
+            pixel.setFillColor(currentColor);
+            magic.add(getView().getCanvas().getNumber(x,y),currentColor);
+        }
+        else return;
     }
 }
