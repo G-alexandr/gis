@@ -20,6 +20,9 @@ import net.bsuir.client.events.ColorChanged;
 import net.bsuir.client.tools.Canvas;
 import org.vaadin.gwtgraphics.client.DrawingArea;
 
+import java.util.HashMap;
+import java.util.Iterator;
+
 public abstract class AbstractAlgoritmView extends ViewImpl {
 
 
@@ -28,6 +31,7 @@ public abstract class AbstractAlgoritmView extends ViewImpl {
     protected final Widget widget;
 
     protected String color ="#000000";
+
 
     @Inject
     EventBus eventBus;
@@ -105,4 +109,5 @@ public abstract class AbstractAlgoritmView extends ViewImpl {
             }
         });
     }
+
 }
