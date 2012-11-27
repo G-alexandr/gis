@@ -7,6 +7,7 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.tips.ToolTip;
 import com.sencha.gxt.widget.core.client.tips.ToolTipConfig;
 import net.bsuir.client.events.MouseClick;
+import net.bsuir.client.events.MouseDoubleClick;
 import net.bsuir.client.events.MouseMove;
 import org.vaadin.gwtgraphics.client.DrawingArea;
 import org.vaadin.gwtgraphics.client.shape.Rectangle;
@@ -51,7 +52,7 @@ public class Canvas extends DrawingArea {
                 rect.addClickHandler(new ClickHandler() {
                     public void onClick(ClickEvent event) {
                         Rectangle rect = (Rectangle) event.getSource();
-                        mouseClick(event,rect);
+                        mouseClick(event, rect);
                     }
                 });
                 rect.addMouseMoveHandler(new MouseMoveHandler() {
@@ -59,6 +60,13 @@ public class Canvas extends DrawingArea {
                     public void onMouseMove(MouseMoveEvent event) {
                         Rectangle rect = (Rectangle) event.getSource();
                         mouseMove(event,rect);
+                    }
+                });
+                rect.addDoubleClickHandler(new DoubleClickHandler() {
+                    @Override
+                    public void onDoubleClick(DoubleClickEvent event) {
+                        Rectangle rect = (Rectangle) event.getSource();
+                        mouseDoubleClick(event,rect);
                     }
                 });
             }
@@ -79,6 +87,12 @@ public class Canvas extends DrawingArea {
         int x = rect.getX()/PIXEL_HEIGHT;
         int y = rect.getY()/PIXEL_WIDTH;
         eventBus.fireEvent(new MouseClick(rect,x,y,algoritm));
+    }
+
+    private void mouseDoubleClick(DoubleClickEvent event, Rectangle rect) {
+        int x = rect.getX()/PIXEL_HEIGHT;
+        int y = rect.getY()/PIXEL_WIDTH;
+        eventBus.fireEvent(new MouseDoubleClick(rect,x,y,algoritm));
     }
 
     final public void clear(){

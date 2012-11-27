@@ -84,7 +84,7 @@ public class ParabolaAlgoritmPresenter extends
             @Override
             public void onClick(MouseClick event) {
                 if(getView().getCanvas().getAlgoritm() != event.getAlgoritm()) return;
-                event.getRectangle().setFillColor(currentColor);
+//                event.getRectangle().setFillColor(currentColor);
                 if(mousePressed){
                     mousePressed=false;
                     magic.commit();
@@ -133,7 +133,7 @@ public class ParabolaAlgoritmPresenter extends
         int Sh, Sv, Sd;
         int y = 0;
         int x = 0;
-        int p=(int) (Math.pow(y2,2)/(2*x2));
+        int p=(int) (Math.pow(y2,2)/(2*y2));
         Sd = ((y + 1) * (y + 1) )- 2 * p * (x + 1);
         Sv = ((y + 1)*(y + 1)) - 2 * p * x;
         Sh = (y*y) - 2 * p * (x + 1);

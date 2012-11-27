@@ -1,5 +1,8 @@
 package net.bsuir.client.labs.lab3;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
@@ -11,6 +14,7 @@ import com.gwtplatform.mvp.client.proxy.ProxyPlace;
 import com.gwtplatform.mvp.client.proxy.RevealContentEvent;
 import net.bsuir.client.events.ColorChanged;
 import net.bsuir.client.events.MouseClick;
+import net.bsuir.client.events.MouseDoubleClick;
 import net.bsuir.client.events.MouseMove;
 import net.bsuir.client.place.NameTokens;
 import net.bsuir.client.presenter.LayoutPresenter;
@@ -29,6 +33,7 @@ public class BezeAlgoritmPresenter extends
         Canvas getCanvas();
         String getColor();
         TextArea getLoger();
+        Button getClearButton();
     }
     @ProxyCodeSplit
     @NameToken(NameTokens.BEZE)
@@ -38,8 +43,8 @@ public class BezeAlgoritmPresenter extends
     public BezeAlgoritmPresenter(final EventBus eventBus, final MyView view,
                                  final MyProxy proxy) {
         super(eventBus, view, proxy);
-        offset_x = 0;//getView().getCanvas().getMax_x()/2;
-        offset_y = 0;//getView().getCanvas().getMax_y()/2;
+        log("Double click to end line");
+
     }
 
     private String currentColor = "#000000";
@@ -50,13 +55,9 @@ public class BezeAlgoritmPresenter extends
     private final  static int N=10;
     private final  static int treshold = 1;
 
-    private int offset_x , offset_y;
+    private Point last_3, last_4;
 
-    private Point point_1;
-    private Point point_2;
-
-    private Point r1;
-    private Point r2;
+    List<Point> pointList = new ArrayList<Point>(4);
 
     private CanvasLayersMagic magic = new CanvasLayersMagic() {
         @Override
@@ -93,35 +94,23 @@ public class BezeAlgoritmPresenter extends
             @Override
             public void onClick(MouseClick event) {
                 if(getView().getCanvas().getAlgoritm() != event.getAlgoritm()) return;
-//                event.getRectangle().setFillColor(currentColor);
-               if (clicks >= 4){
-                   magic.commit();
-                   clicks=0;point_1=null;point_2=null; r1=null; r2=null; old_points=null;
 
-                   log("=================");
-               }
-               if(point_1 == null ){
-                   point_1=new Point(event.getPosX(),event.getPosY());
-                   getView().getCanvas().getPixelByPos(event.getPosX(),event.getPosY()).setFillColor("red");
-                   log("point 1: "+event.getPosX()+" | "+event.getPosY());
-               }
-               else if (point_2 == null){
-                   point_2=new Point(event.getPosX(),event.getPosY());
-                   getView().getCanvas().getPixelByPos(event.getPosX(),event.getPosY()).setFillColor("red");
-                   log("point 2: "+event.getPosX()+" | "+event.getPosY());
-               }
-               else if (r1 == null){
-
-                   r1 = new Point((event.getPosX()-offset_x)*treshold,(event.getPosY()-offset_y)*treshold);
-                   log("point 3: "+(event.getPosX()-offset_x)*treshold+" | "+(event.getPosY()-offset_y)*treshold);
-               }
-               else if (r2 == null){
-                   r2 = new Point((event.getPosX()-20)*treshold,(event.getPosY()-20)*treshold);
-                   log("point 4: "+event.getPosX()*treshold+" | "+event.getPosY()*treshold);
-               }
-
-                clicks++;
-//                Info.display("POINT",event.getPosX()+"\n"+event.getPosY());
+                if (pointList.size()<4){
+                    Point p =new Point(event.getPosX(),event.getPosY());
+                    pointList.add(p);
+                    drawReferencePoint(p.X,p.Y);
+                    log("point "+(pointList.size())+" "+p.X+" | "+p.Y);
+                }
+                else{
+                    magic.commit();
+                    last_3 = pointList.get(3);
+                    pointList.clear();
+                    pointList.add(last_3);
+                    Point p =new Point(event.getPosX(),event.getPosY());
+                    pointList.add(p);
+                    drawReferencePoint(p.X,p.Y);
+                    log("point "+(pointList.size())+" "+p.X+" | "+p.Y);
+                }
 
             }
         }));
@@ -131,24 +120,42 @@ public class BezeAlgoritmPresenter extends
             public void onMove(MouseMove event) {
                 if(getView().getCanvas().getAlgoritm() != event.getAlgoritm() ) return;
 
-                if(clicks < 2 || clicks>=4) return;
+                if(pointList.size() < 2 || pointList.size()>4){
+                   return;
+                }
                 else  {
                     magic.rollback();
-                    old_points=algoritm(point_1, point_2,
-                                        r1==null ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : r1,
-                                        r2==null ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : r2);
+                    algoritm(pointList.get(0), pointList.get(1),
+                            pointList.size()<3 ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : pointList.get(2),
+                            pointList.size()<4 ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : pointList.get(3));
                 }
 
             }
 
         }));
 
+        registerHandler(getEventBus().addHandler(MouseDoubleClick.getType(), new MouseDoubleClick.MouseDoubleClickHandler(){
+
+            @Override
+            public void onDoubleClick(MouseDoubleClick event) {
+               magic.commit();
+               pointList.clear();
+            }
+        }));
         registerHandler(getEventBus().addHandler(ColorChanged.getType(),new ColorChanged.ColorChangedHandler() {
             @Override
             public void onChanged(ColorChanged event) {
                 currentColor = getView().getColor();
             }
         }));
+
+        getView().getClearButton().addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                magic.clearDrawPoints();
+                magic.rollback();
+            }
+        });
 	}
     public List<Point> algoritm(Point p1, Point p2, Point r1, Point r2){
         List<Point> result= new ArrayList<Point>();
@@ -172,7 +179,12 @@ public class BezeAlgoritmPresenter extends
         else return;
     }
 
+    void drawReferencePoint(int x, int y){
+        getView().getCanvas().getPixelByPos(x,y).setFillColor("red");
+        magic.addToDraw(getView().getCanvas().getNumber(x, y),"red");
+    }
+
     void log(String message){
-         getView().getLoger().setText( getView().getLoger().getText()+"\n"+message);
+         getView().getLoger().setText(getView().getLoger().getText()+"\n"+message);
     }
 }

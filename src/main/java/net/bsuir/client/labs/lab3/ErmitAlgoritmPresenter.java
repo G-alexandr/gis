@@ -1,5 +1,8 @@
 package net.bsuir.client.labs.lab3;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
@@ -12,6 +15,7 @@ import com.gwtplatform.mvp.client.proxy.RevealContentEvent;
 import com.sencha.gxt.widget.core.client.info.Info;
 import net.bsuir.client.events.ColorChanged;
 import net.bsuir.client.events.MouseClick;
+import net.bsuir.client.events.MouseDoubleClick;
 import net.bsuir.client.events.MouseMove;
 import net.bsuir.client.place.NameTokens;
 import net.bsuir.client.presenter.LayoutPresenter;
@@ -32,6 +36,7 @@ public class ErmitAlgoritmPresenter  extends
         Canvas getCanvas();
         String getColor();
         TextArea getLoger();
+        Button getClearButton();
     }
 
     @Inject
@@ -44,19 +49,13 @@ public class ErmitAlgoritmPresenter  extends
 
 
     private String currentColor = "#000000";
-    boolean drawFlag = false;
-    private int clicks =0;
 
     private final  static int N=10;
     private final  static int treshold = 1;
 
     private int offset_x , offset_y;
 
-    private Point point_1;
-    private Point point_2;
-
-    private Point r1;
-    private Point r2;
+    List<Point> pointList = new ArrayList<Point>(4);
 
     private CanvasLayersMagic magic = new CanvasLayersMagic() {
 
@@ -79,13 +78,10 @@ public class ErmitAlgoritmPresenter  extends
         }
     };
 
-
-
 	@Override
 	protected void revealInParent() {
 		RevealContentEvent.fire(this, LayoutPresenter.SLOT_content, this);
 	}
-
 
     @Override
 	protected void onBind() {
@@ -96,35 +92,20 @@ public class ErmitAlgoritmPresenter  extends
             @Override
             public void onClick(MouseClick event) {
                 if(getView().getCanvas().getAlgoritm() != event.getAlgoritm()) return;
-//                event.getRectangle().setFillColor(currentColor);
-               if (clicks >= 4){
-                   magic.commit();
-                   clicks=0;point_1=null;point_2=null; r1=null; r2=null;
-                   log("=================");
-               }
-               if(point_1 == null ){
-                   point_1=new Point(event.getPosX(),event.getPosY());
-                   getView().getCanvas().getPixelByPos(event.getPosX(),event.getPosY()).setFillColor("red");
-                   log("first point: "+event.getPosX()+" | "+event.getPosY());
-               }
-               else if (point_2 == null){
-                   point_2=new Point(event.getPosX(),event.getPosY());
-                   getView().getCanvas().getPixelByPos(event.getPosX(),event.getPosY()).setFillColor("red");
-                   log("second point: "+event.getPosX()+" | "+event.getPosY());
-               }
-               else if (r1 == null){
 
-                   r1 = new Point((event.getPosX()-offset_x)*treshold,(event.getPosY()-offset_y)*treshold);
-                   log("vector R1: "+(event.getPosX()-offset_x)*treshold+" | "+(event.getPosY()-offset_y)*treshold);
-               }
-               else if (r2 == null){
-                   r2 = new Point((event.getPosX()-offset_x)*treshold,(event.getPosY()-offset_x)*treshold);
-                   log("vector R2 "+r2.X+" | "+r2.Y);
-               }
-
-                clicks++;
-//                Info.display("POINT",event.getPosX()+"\n"+event.getPosY());
-
+                if (pointList.size()<4){
+                    Point p =new Point(event.getPosX(),event.getPosY());
+                    pointList.add(p);
+                    drawReferencePoint(p.X, p.Y);
+                    log("point "+(pointList.size())+" "+p.X+" | "+p.Y);
+                }
+                else{
+                    magic.commit();
+                    pointList.clear();
+                    Point p =new Point(event.getPosX(),event.getPosY());
+                    drawReferencePoint(p.X, p.Y);
+                    pointList.add(p);
+                }
             }
         }));
 
@@ -133,17 +114,19 @@ public class ErmitAlgoritmPresenter  extends
             public void onMove(MouseMove event) {
                 if(getView().getCanvas().getAlgoritm() != event.getAlgoritm() ) return;
 
-                if(clicks < 2 || clicks>=4) return;
+                if(pointList.size() < 2 || pointList.size()>=4) return;
                 else  {
                     magic.rollback();
-                    algoritm(point_1,point_2,
-                                        r1==null ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : r1,
-                                        r2==null ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : r2);
+                    algoritm(pointList.get(0),pointList.get(1),
+                                        pointList.size()<3 ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : pointList.get(2),
+                                        pointList.size()<4 ? new Point(event.getPosX()*treshold,event.getPosY()*treshold) : pointList.get(3));
                 }
 
             }
 
         }));
+
+
 
         registerHandler(getEventBus().addHandler(ColorChanged.getType(),new ColorChanged.ColorChangedHandler() {
             @Override
@@ -151,7 +134,16 @@ public class ErmitAlgoritmPresenter  extends
                 currentColor = getView().getColor();
             }
         }));
-	}
+
+
+        getView().getClearButton().addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                magic.clearDrawPoints();
+                magic.rollback();
+            }
+        });
+    }
     public List<Point> algoritm(Point p1, Point p2, Point r1, Point r2){
         List<Point> result= new ArrayList<Point>();
         int x, y;
@@ -176,5 +168,10 @@ public class ErmitAlgoritmPresenter  extends
 
     void log(String message){
          getView().getLoger().setText( getView().getLoger().getText()+"\n"+message);
+    }
+
+    void drawReferencePoint(int x, int y){
+        getView().getCanvas().getPixelByPos(x,y).setFillColor("red");
+        magic.addToDraw(getView().getCanvas().getNumber(x, y),"red");
     }
 }
